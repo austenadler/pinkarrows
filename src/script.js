@@ -201,10 +201,12 @@ let Mode = Object.freeze({
   "NONE": 0,
   "TEXT": 1,
   "RECT": 2,
-  "EDIT_TEXT": 3,
-  "EDIT_RECT": 4,
-  "ARROW": 5,
-  "EMOJI": 6
+  "OVAL": 3,
+  "EDIT_TEXT": 4,
+  "EDIT_RECT": 5,
+  "EDIT_OVAL": 6,
+  "ARROW": 7,
+  "EMOJI": 8
 });
 let mode = Mode.NONE
 setMode(Mode.NONE);
@@ -444,6 +446,9 @@ document.addEventListener('keydown', function (e) {
     case 'r':
       setMode(Mode.RECT);
       break;
+    case 'o':
+      setMode(Mode.OVAL);
+      break;
     case 'a':
       setMode(Mode.ARROW);
       break;
@@ -646,6 +651,38 @@ canvas.on('mouse:down', function (options) {
 
     canvas.add(rect);
     redrawCanvas();
+  } else if (mode == Mode.OVAL) {
+    console.log('attempting to draw oval')
+    let pointer = canvas.getPointer(options.e);
+    origX = pointer.x;
+    origY = pointer.y;
+    let oval = new fabric.Ellipse({
+      left: origX,
+      top: origY,
+      originX: 'left',
+      originY: 'top',
+      rx: 25,
+      ry: 25,
+      angle: 0,
+      fill: 'rgba(255,255,255,0)',
+      stroke: '#FF007F',  // Pink color
+      strokeWidth: 4,
+      selectable: true,
+      hasBorders: false,
+      hasControls: true,
+      strokeUniform: true,
+    })
+    currentlyCreatingObject = oval;
+    console.log(oval)
+
+    // detect oval edit
+    oval.on('selected', function () {
+      //mode = Mode.EDIT_OVAL;
+      console.log("mode is EDIT_OVAL")
+    });
+
+    canvas.add(oval);
+    redrawCanvas();
   } else if (mode == Mode.ARROW) {
 
     let arrow = createArrow(origX, origY);
@@ -685,6 +722,16 @@ canvas.on('mouse:move', function (o) {
         height: bounds.height
       });
     }
+  } else if (mode == Mode.OVAL) {
+    if (currentlyCreatingObject) {
+      let bounds = getBoundsForPointer(pointer)
+      currentlyCreatingObject.set({
+        left: bounds.left,
+        top: bounds.top,
+        rx: bounds.width/2,
+        ry: bounds.height/2
+      });
+    }
   } else if (mode == Mode.ARROW) {
     if (currentlyCreatingObject) {
       let arrow = currentlyCreatingObject
@@ -698,7 +745,7 @@ canvas.on('mouse:move', function (o) {
 
 canvas.on('mouse:up', function (o) {
   isDown = false;
-  if (mode == Mode.RECT) {
+  if (mode == Mode.RECT || mode == Mode.OVAL) {
     canvas.setActiveObject(canvas.item(canvas.getObjects().length - 1));
     currentlyCreatingObject = null;
     setMode(Mode.NONE);
