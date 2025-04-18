@@ -91,9 +91,9 @@ $(document).ready(function () {
   const watermarkToggle = $('#watermark-toggle');
   let watermarkState = localStorage.getItem('watermark');
 
-  // If watermark state is not set in localStorage, default to true
+  // If watermark state is not set in localStorage, default to false
   if (watermarkState === null) {
-    watermarkState = 'true';
+    watermarkState = 'false';
     localStorage.setItem('watermark', watermarkState);
   }
 
