@@ -43,7 +43,7 @@ async function loadEmojiPopup() {
       top: 100,
       fontFamily: 'sans-serif',
       fontSize: 100,
-      fill: '#FF007F',  // Pink color
+      fill: localStorage.getItem('colorChooser'),  // Chosen color
       stroke: '#ffffff', // White border
       strokeWidth: 2,
       shadow: 'rgba(0,0,0,0.3) 2px 2px 2px',  // Black shadow
@@ -101,14 +101,31 @@ $(document).ready(function () {
 
   watermarkToggle.prop('checked', watermarkState === 'true');
 
-
-
   // Handle watermark toggle change
   watermarkToggle.change(function () {
     const isChecked = $(this).is(':checked');
     localStorage.setItem('watermark', isChecked);
   });
 
+
+  // Initialize color chooser state from localStorage
+  const colorChooser = $('#color-chooser');
+  let colorChooserState = localStorage.getItem('colorChooser');
+
+  // If color chooser state is not set in localStorage, default to #ff007f
+  if (colorChooserState === null) {
+    colorChooserState = '#ff007f';
+    localStorage.setItem('colorChooser', colorChooserState);
+  }
+
+  colorChooser.val(colorChooserState);
+  document.documentElement.style.setProperty('--color', colorChooserState);
+
+  // Handle color chooser change
+  colorChooser.change(function () {
+    localStorage.setItem('colorChooser', $(this).val());
+    document.documentElement.style.setProperty('--color', $(this).val());
+  });
 
 
   function refreshUI() {
@@ -610,7 +627,7 @@ canvas.on('mouse:down', function (options) {
       left: pointer.x,
       top: pointer.y,
       fontFamily: 'sans-serif',
-      fill: '#FF007F',  // Pink color
+      fill: localStorage.getItem('colorChooser'),  // Chosen color
       stroke: '#ffffff', // White border
       strokeWidth: 2,
       shadow: 'rgba(0,0,0,0.3) 2px 2px 2px',  // Black shadow
@@ -647,7 +664,7 @@ canvas.on('mouse:down', function (options) {
       height: 50,
       angle: 0,
       fill: 'rgba(255,255,255,0)',
-      stroke: '#FF007F',  // Pink color
+      stroke: localStorage.getItem('colorChooser'),  // Chosen color
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
@@ -679,7 +696,7 @@ canvas.on('mouse:down', function (options) {
       ry: 25,
       angle: 0,
       fill: 'rgba(255,255,255,0)',
-      stroke: '#FF007F',  // Pink color
+      stroke: localStorage.getItem('colorChooser'),  // Chosen color
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
