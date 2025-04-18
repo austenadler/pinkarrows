@@ -201,10 +201,12 @@ let Mode = Object.freeze({
   "NONE": 0,
   "TEXT": 1,
   "RECT": 2,
-  "EDIT_TEXT": 3,
-  "EDIT_RECT": 4,
-  "ARROW": 5,
-  "EMOJI": 6
+  "OVAL": 3,
+  "EDIT_TEXT": 4,
+  "EDIT_RECT": 5,
+  "EDIT_OVAL": 6,
+  "ARROW": 7,
+  "EMOJI": 8
 });
 let mode = Mode.NONE
 setMode(Mode.NONE);
@@ -438,7 +440,7 @@ document.addEventListener('keydown', function (e) {
     return;
   }
   switch (e.key) {
-    case '4':
+    case '5':
     case 't':
       setMode(Mode.TEXT);
       break;
@@ -446,11 +448,15 @@ document.addEventListener('keydown', function (e) {
     case 'r':
       setMode(Mode.RECT);
       break;
+    case '4':
+    case 'o':
+      setMode(Mode.OVAL);
+      break;
     case '2':
     case 'a':
       setMode(Mode.ARROW);
       break;
-    case '5':
+    case '6':
     case 'e':
       openEmojiPicker()
       setMode(Mode.EMOJI)
@@ -471,7 +477,59 @@ document.addEventListener('keydown', function (e) {
 
   // Ctrl+V or Cmd+V for MacOS
   if ((e.ctrlKey || e.metaKey) && e.which === 86) {
-    paste();
+    // Check for object in clipboard
+    if (copiedObject) {
+      paste();
+      return;
+    }
+
+    // Try to get clipboard image data
+    navigator.clipboard.read().then(items => {
+      for (const item of items) {
+        if (item.types.includes('image/png' || 'image/jpeg')) {
+          item.getType('image/png').then(blob => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              fabric.Image.fromURL(event.target.result, function(oImg) {
+                // Calculate the max width (90% of canvas width)
+                const maxWidth = canvas.width * 0.9;
+
+                // Scale image if wider than maxWidth
+                if (oImg.width > maxWidth) {
+                  const scaleFactor = maxWidth / oImg.width;
+                  oImg.scale(scaleFactor);
+                }
+
+                oImg.set({
+                  left: (canvas.width - oImg.getScaledWidth()) / 2,
+                  top: canvas.height * .1,
+                  angle: 0
+                }).setCoords();
+
+                // Find insertion index
+                let insertIndex = canvas.getObjects().findIndex(obj =>
+                  obj.type !== 'image' && obj.type !== 'backgroundImage'
+                );
+
+                // if no non-image objects found, insert at the top
+                if (insertIndex === -1) {
+                  insertIndex = canvas.getObjects().length;
+                }
+
+                // Insert the image at the found index
+                canvas.insertAt(oImg, insertIndex);
+                redrawCanvas();
+                $.toast('Image pasted from clipboard');
+              });
+            };
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    }).catch(err => {
+      $.toast('Failed to paste image from clipboard');
+      console.error('Failed to paste image from clipboard', err);
+    })
   }
 
   if ((e.ctrlKey || e.metaKey) && e.which === 90 && !e.shiftKey) {
@@ -599,6 +657,38 @@ canvas.on('mouse:down', function (options) {
 
     canvas.add(rect);
     redrawCanvas();
+  } else if (mode == Mode.OVAL) {
+    console.log('attempting to draw oval')
+    let pointer = canvas.getPointer(options.e);
+    origX = pointer.x;
+    origY = pointer.y;
+    let oval = new fabric.Ellipse({
+      left: origX,
+      top: origY,
+      originX: 'left',
+      originY: 'top',
+      rx: 25,
+      ry: 25,
+      angle: 0,
+      fill: 'rgba(255,255,255,0)',
+      stroke: '#FF007F',  // Pink color
+      strokeWidth: 4,
+      selectable: true,
+      hasBorders: false,
+      hasControls: true,
+      strokeUniform: true,
+    })
+    currentlyCreatingObject = oval;
+    console.log(oval)
+
+    // detect oval edit
+    oval.on('selected', function () {
+      //mode = Mode.EDIT_OVAL;
+      console.log("mode is EDIT_OVAL")
+    });
+
+    canvas.add(oval);
+    redrawCanvas();
   } else if (mode == Mode.ARROW) {
 
     let arrow = createArrow(origX, origY);
@@ -638,6 +728,16 @@ canvas.on('mouse:move', function (o) {
         height: bounds.height
       });
     }
+  } else if (mode == Mode.OVAL) {
+    if (currentlyCreatingObject) {
+      let bounds = getBoundsForPointer(pointer)
+      currentlyCreatingObject.set({
+        left: bounds.left,
+        top: bounds.top,
+        rx: bounds.width/2,
+        ry: bounds.height/2
+      });
+    }
   } else if (mode == Mode.ARROW) {
     if (currentlyCreatingObject) {
       let arrow = currentlyCreatingObject
@@ -651,7 +751,7 @@ canvas.on('mouse:move', function (o) {
 
 canvas.on('mouse:up', function (o) {
   isDown = false;
-  if (mode == Mode.RECT) {
+  if (mode == Mode.RECT || mode == Mode.OVAL) {
     canvas.setActiveObject(canvas.item(canvas.getObjects().length - 1));
     currentlyCreatingObject = null;
     setMode(Mode.NONE);
