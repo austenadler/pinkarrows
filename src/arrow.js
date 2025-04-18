@@ -24,7 +24,7 @@ function createArrow(left, top) {
   var polygon = new fabric.Polygon(structuredClone(originalPoints), {
     left: left-40,
     top: top-5,
-    fill: '#FF007F',
+    fill: localStorage.getItem('colorChooser'),
     originX: 'left',
     strokeWidth: 4,
     stroke: 'white',
