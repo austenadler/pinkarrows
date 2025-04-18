@@ -125,6 +125,10 @@ $(document).ready(function () {
     document.documentElement.style.setProperty('--color', $(this).val());
   });
 
+  $('#color-reset').click(() => {
+    colorChooser.val('#ff007f').change();
+  });
+
 
   function refreshUI() {
     if (loggedInUser) {
