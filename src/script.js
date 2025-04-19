@@ -74,6 +74,10 @@ $(document).ready(function () {
     copyImageToClipboard()
   })
 
+  $('#clear-image').click(() => {
+      clearImage()
+  })
+
   // Add this to handle the button click
   $('#file-upload-button').click(() => {
     console.log('clicked button')
@@ -419,6 +423,12 @@ async function downloadCroppedWithWatermark() {
   link.download = 'canvas_image.png';
   link.click();
   $.toast("Downloaded")
+}
+
+async function clearImage() {
+    // Unfortunately, it looks like the history plugin does not support adding this as a single event in the history: https://github.com/alimozdemir/fabric-history/issues/41
+    canvas.clear();
+    redrawCanvas();
 }
 
 async function copyImageToClipboard() {
