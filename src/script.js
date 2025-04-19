@@ -151,7 +151,6 @@ $(document).ready(function () {
 
   $(".tool-btn").click(function () {
     let modeText = $(this).attr("data-mode");
-    setMode(Mode[modeText]); // set global mode
 
     // Remove 'selected' class from all buttons
     $(".tool-btn").removeClass("selected");
@@ -159,6 +158,7 @@ $(document).ready(function () {
     // Add 'selected' class to clicked button
     $(this).addClass("selected");
 
+    setMode(Mode[modeText]); // set global mode
   });
 });
 
@@ -233,6 +233,9 @@ let mode = Mode.NONE
 setMode(Mode.NONE);
 
 function setMode(newMode) {
+  if (typeof newMode === 'undefined') {
+    newMode = Mode.NONE;
+  }
   // set the mode
   mode = newMode;
   const modeName = getModeNameForMode(mode);
