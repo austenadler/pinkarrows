@@ -25,7 +25,7 @@ async function openEmojiPicker() {
 }
 
 async function loadEmojiPopup() {
-  let { createPopup } = await import('https://unpkg.com/@picmo/popup-picker@latest/dist/index.js?module')
+  let { createPopup } = await import('./popup-picker.js')
   const trigger = document.querySelector('#emoji-button');//$('#emoji-button')
 
   emojiPicker = createPopup({
