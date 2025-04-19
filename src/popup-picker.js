@@ -1,4 +1,4 @@
-import { getPrefixedClasses as xt, Events as vt, getOptions as bt, createPicker as Et, FocusTrap as Ct, animate as Z, createStyleInjector as Pt } from "https://unpkg.com/picmo@^5.8.0?module";
+import { getPrefixedClasses as xt, Events as vt, getOptions as bt, createPicker as Et, FocusTrap as Ct, animate as Z, createStyleInjector as Pt } from "./picmo@^5.8.0.js";
 function _(t) {
   return t.split("-")[0];
 }
