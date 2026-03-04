@@ -717,7 +717,7 @@ canvas.on('mouse:down', function (options) {
       ry: 25,
       angle: 0,
       fill: 'rgba(255,255,255,0)',
-      stroke: '#FF007F',  // Pink color
+      stroke: localStorage.getItem('colorChooser'),  // Chosen color
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
@@ -744,7 +744,7 @@ canvas.on('mouse:down', function (options) {
     redrawCanvas();
   } else if (mode == Mode.LINE) {
     let line = new fabric.Line([origX, origY, origX, origY], {
-      stroke: '#FF007F',
+      stroke: localStorage.getItem('colorChooser'),
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
