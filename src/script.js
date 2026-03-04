@@ -26,7 +26,7 @@ async function openEmojiPicker() {
 }
 
 async function loadEmojiPopup() {
-  let { createPopup } = await import('https://unpkg.com/@picmo/popup-picker@latest/dist/index.js?module')
+  let { createPopup } = await import('./popup-picker.js')
   const trigger = document.querySelector('#emoji-button');//$('#emoji-button')
 
   emojiPicker = createPopup({
@@ -43,7 +43,7 @@ async function loadEmojiPopup() {
       top: 100,
       fontFamily: 'sans-serif',
       fontSize: 100,
-      fill: '#FF007F',  // Pink color
+      fill: localStorage.getItem('colorChooser'),  // Chosen color
       stroke: '#ffffff', // White border
       strokeWidth: 2,
       shadow: 'rgba(0,0,0,0.3) 2px 2px 2px',  // Black shadow
@@ -76,6 +76,10 @@ $(document).ready(function () {
     copyImageToClipboard()
   })
 
+  $('#clear-image').click(() => {
+      clearImage()
+  })
+
   // Add this to handle the button click
   $('#file-upload-button').click(() => {
     console.log('clicked button')
@@ -93,15 +97,13 @@ $(document).ready(function () {
   const watermarkToggle = $('#watermark-toggle');
   let watermarkState = localStorage.getItem('watermark');
 
-  // If watermark state is not set in localStorage, default to true
+  // If watermark state is not set in localStorage, default to false
   if (watermarkState === null) {
-    watermarkState = 'true';
+    watermarkState = 'false';
     localStorage.setItem('watermark', watermarkState);
   }
 
   watermarkToggle.prop('checked', watermarkState === 'true');
-
-
 
   // Handle watermark toggle change
   watermarkToggle.change(function () {
@@ -109,6 +111,29 @@ $(document).ready(function () {
     localStorage.setItem('watermark', isChecked);
   });
 
+
+  // Initialize color chooser state from localStorage
+  const colorChooser = $('#color-chooser');
+  let colorChooserState = localStorage.getItem('colorChooser');
+
+  // If color chooser state is not set in localStorage, default to #ff007f
+  if (colorChooserState === null) {
+    colorChooserState = '#ff007f';
+    localStorage.setItem('colorChooser', colorChooserState);
+  }
+
+  colorChooser.val(colorChooserState);
+  document.documentElement.style.setProperty('--color', colorChooserState);
+
+  // Handle color chooser change
+  colorChooser.change(function () {
+    localStorage.setItem('colorChooser', $(this).val());
+    document.documentElement.style.setProperty('--color', $(this).val());
+  });
+
+  $('#color-reset').click(() => {
+    colorChooser.val('#ff007f').change();
+  });
 
 
   function refreshUI() {
@@ -132,7 +157,6 @@ $(document).ready(function () {
 
   $(".tool-btn").click(function () {
     let modeText = $(this).attr("data-mode");
-    setMode(Mode[modeText]); // set global mode
 
     // Remove 'selected' class from all buttons
     $(".tool-btn").removeClass("selected");
@@ -140,6 +164,7 @@ $(document).ready(function () {
     // Add 'selected' class to clicked button
     $(this).addClass("selected");
 
+    setMode(Mode[modeText]); // set global mode
   });
 });
 
@@ -208,13 +233,16 @@ let Mode = Object.freeze({
   "EDIT_RECT": 5,
   "EDIT_OVAL": 6,
   "ARROW": 7,
-  "LINE": 8,
-  "EMOJI": 9
+  "EMOJI": 8,
+  "LINE": 9,
 });
 let mode = Mode.NONE
 setMode(Mode.NONE);
 
 function setMode(newMode) {
+  if (typeof newMode === 'undefined') {
+    newMode = Mode.NONE;
+  }
   // set the mode
   mode = newMode;
   const modeName = getModeNameForMode(mode);
@@ -401,6 +429,12 @@ async function downloadCroppedWithWatermark() {
   $.toast("Downloaded")
 }
 
+async function clearImage() {
+    // Unfortunately, it looks like the history plugin does not support adding this as a single event in the history: https://github.com/alimozdemir/fabric-history/issues/41
+    canvas.clear();
+    redrawCanvas();
+}
+
 async function copyImageToClipboard() {
   const dataURL = await getImageWithWatermark();
 
@@ -451,6 +485,10 @@ document.addEventListener('keydown', function (e) {
     case '4':
     case 'r':
       setMode(Mode.RECT);
+      break;
+    case '4':
+    case 'o':
+      setMode(Mode.OVAL);
       break;
     case '2':
     case 'a':
@@ -610,7 +648,7 @@ canvas.on('mouse:down', function (options) {
       left: pointer.x,
       top: pointer.y,
       fontFamily: 'sans-serif',
-      fill: '#FF007F',  // Pink color
+      fill: localStorage.getItem('colorChooser'),  // Chosen color
       stroke: '#ffffff', // White border
       strokeWidth: 2,
       shadow: 'rgba(0,0,0,0.3) 2px 2px 2px',  // Black shadow
@@ -647,7 +685,7 @@ canvas.on('mouse:down', function (options) {
       height: 50,
       angle: 0,
       fill: 'rgba(255,255,255,0)',
-      stroke: '#FF007F',  // Pink color
+      stroke: localStorage.getItem('colorChooser'),  // Chosen color
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
