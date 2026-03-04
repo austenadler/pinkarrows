@@ -727,7 +727,7 @@ canvas.on('mouse:down', function (options) {
     redrawCanvas();
   } else if (mode == Mode.LINE) {
     let line = new fabric.Line([origX, origY, origX, origY], {
-      stroke: '#FF007F',
+      stroke: localStorage.getItem('colorChooser'),
       strokeWidth: 4,
       selectable: true,
       hasBorders: false,
